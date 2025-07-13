@@ -1,0 +1,42 @@
+{
+    "name": "lacruzwebdev/livewire-html-forms",
+    "description": "Integrates Livewire with the HTML Forms plugin for WordPress and adds support for Cloudflare Turnstile",
+    "type": "package",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "lacruzwebdev",
+            "email": "hola@lacruzweb.com"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "livewire/livewire": "^3.6"
+    },
+    "autoload": {
+        "psr-4": {
+            "LacruzWebDev\\LivewireHtmlForms\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "LacruzWebDev\\LivewireHtmlForms\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "acorn": {
+            "providers": [
+                "LacruzWebDev\\LivewireHtmlForms\\Providers\\LivewireHtmlFormsServiceProvider"
+            ]
+        }
+    },
+    "keywords": [
+        "livewire",
+        "wordpress",
+        "html-forms",
+        "turnstile",
+        "cloudflare",
+        "forms",
+        "validation"
+    ]
+}
