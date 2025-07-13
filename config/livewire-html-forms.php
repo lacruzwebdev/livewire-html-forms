@@ -60,10 +60,6 @@ return [
   */
   'security' => [
     'honeypot_enabled' => true,
-    'rate_limiting' => false,
-    'rate_limit_attempts' => 5,
-    'rate_limit_window' => 60, // seconds
-    'csrf_protection' => true,
   ],
 
   /*
@@ -75,9 +71,6 @@ return [
   |
   */
   'validation' => [
-    'default_rules' => [
-      'turnstile_response' => 'required|string',
-    ],
     'messages' => [
       'turnstile_response.required' => 'La validación de seguridad es requerida.',
     ],
@@ -94,8 +87,6 @@ return [
   'components' => [
     'turnstile' => [
       'default_id' => 'captcha',
-      'default_theme' => 'auto', // light, dark, auto
-      'default_size' => 'normal', // normal, compact
     ],
   ],
 ];

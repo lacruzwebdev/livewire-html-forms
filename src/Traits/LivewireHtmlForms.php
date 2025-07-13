@@ -114,6 +114,8 @@ trait LivewireHtmlForms
     try {
       $validated = $this->validate([
         'turnstileResponse' => ['required', new Turnstile(app(TurnstileClient::class))],
+      ], [
+        'turnstileResponse.required' => config('livewire-html-forms.validation.messages.turnstile_response'),
       ]);
     } catch (ValidationException $e) {
       $this->errorMessage = config('livewire-html-forms.forms.default_error_message');
