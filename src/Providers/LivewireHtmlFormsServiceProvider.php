@@ -74,14 +74,6 @@ class LivewireHtmlFormsServiceProvider extends ServiceProvider
     Blade::directive('turnstileScripts', function () {
       return '<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>';
     });
-
-    Blade::directive('turnstileConfig', function () {
-      return "<?php echo json_encode([
-                'siteKey' => config('livewire-html-forms.turnstile.site_key'),
-                'theme' => config('livewire-html-forms.components.turnstile.default_theme'),
-                'size' => config('livewire-html-forms.components.turnstile.default_size'),
-            ]); ?>";
-    });
   }
 
   /**
