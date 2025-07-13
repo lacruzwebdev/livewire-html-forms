@@ -27,6 +27,7 @@ trait LivewireHtmlForms
   public $errorMessage = '';
   public $hf = '';
   public $turnstileResponse = '';
+  public $formSlug = '';
 
   /**
    * Process form with Livewire validation + HTML Forms submission
