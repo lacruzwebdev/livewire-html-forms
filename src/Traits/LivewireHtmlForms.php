@@ -5,6 +5,7 @@ namespace LacruzWebDev\LivewireHtmlForms\Traits;
 use LacruzWebDev\LivewireHtmlForms\Rules\Turnstile;
 use LacruzWebDev\LivewireHtmlForms\Services\TurnstileClient;
 use Illuminate\Validation\ValidationException;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 /**
  * Trait LivewireHtmlForms
@@ -64,6 +65,7 @@ trait LivewireHtmlForms
       if ($response['success']) {
         $this->successMessage = $response['message'];
         $this->resetFormFields();
+
         if (config('livewire-html-forms.turnstile.enabled')) {
           $this->resetTurnstile();
         }
@@ -174,9 +176,9 @@ trait LivewireHtmlForms
         WP_PLUGIN_DIR . '/html-forms/html-forms.php',
         hf_get_settings()
       );
-
       $this->validateFormData($postData);
       $submission = $this->createSubmission($form, $postData, $formsHandler);
+
       $this->executeHooks($form, $submission);
 
       return [
@@ -246,13 +248,14 @@ trait LivewireHtmlForms
   protected function executeHooks($form, $submission): void
   {
     // Main processing hook
-    try {
-      do_action('hf_process_form', $form, $submission);
-    } catch (\Exception $e) {
-      if (config('livewire-html-forms.forms.log_errors')) {
-        logger()->error('Error in hf_process_form hook: ' . $e->getMessage());
-      }
-    }
+    // It breaks file uploads, so we're not using it
+    // try {
+    //   do_action('hf_process_form', $form, $submission);
+    // } catch (\Exception $e) {
+    //   if (config('livewire-html-forms.forms.log_errors')) {
+    //     logger()->error('Error in hf_process_form hook: ' . $e->getMessage());
+    //   }
+    // }
 
     // Re-save submission object for convenience in form processors hooked into hf_process_form
     if ($form->settings['save_submissions'] && config('livewire-html-forms.forms.log_submissions')) {
@@ -308,6 +311,7 @@ trait LivewireHtmlForms
       return !str_starts_with($key, '_hf_');
     }, ARRAY_FILTER_USE_KEY);
 
+
     if (empty($dataFields)) {
       throw new \Exception('No form data received');
     }
@@ -327,15 +331,99 @@ trait LivewireHtmlForms
 
     $postData = [
       $formIdField => $form->ID,
-      // Use honeypot value from Livewire component
       $honeypotKey => $this->hf,
     ];
 
     foreach ($data as $key => $value) {
-      $postData[$key] = is_bool($value) ? ($value ? '1' : '0') : (string) $value;
+      if ($value instanceof TemporaryUploadedFile) {
+        $postData[$key] = $this->convertLivewireFileToHtmlFormsFormat($value);
+      } elseif (is_array($value) && !empty($value)) {
+        $isFileArray = true;
+        foreach ($value as $item) {
+          if (!($item instanceof TemporaryUploadedFile)) {
+            $isFileArray = false;
+            break;
+          }
+        }
+
+        if ($isFileArray) {
+          $fileArray = [];
+          foreach ($value as $index => $file) {
+            $fileArray[$index] = $this->convertLivewireFileToHtmlFormsFormat($file);
+          }
+          $postData[$key] = $fileArray;
+        } else {
+          $postData[$key] = is_bool($value) ? ($value ? '1' : '0') : (string) $value;
+        }
+      } else {
+        $postData[$key] = is_bool($value) ? ($value ? '1' : '0') : (string) $value;
+      }
+    }
+    return $postData;
+  }
+
+  protected function uploadFile(TemporaryUploadedFile $file)
+  {
+    $originalName = $file->getClientOriginalName();
+    $tempFile = tempnam(sys_get_temp_dir(), 'hf_upload_');
+    file_put_contents($tempFile, $file->get());
+
+    $wp_upload_dir = wp_upload_dir();
+    $hf_upload_dir = sprintf("%s/%s/%s", $wp_upload_dir['basedir'], 'html-forms', $this->formSlug);
+    $hf_upload_url = sprintf("%s/%s/%s", $wp_upload_dir['baseurl'], 'html-forms', $this->formSlug);
+
+    if (!is_dir($hf_upload_dir)) {
+      mkdir($hf_upload_dir, 0755, true);
     }
 
-    return $postData;
+    $file_ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+    $id = gmdate('YmdHis');
+    $field_name = 'file'; // Nombre genérico para el campo
+    $new_filename = sprintf('%s_%s_%s.%s', $id, $field_name, uniqid(), $file_ext);
+    $destination = sprintf("%s/%s", $hf_upload_dir, $new_filename);
+
+    if (!rename($tempFile, $destination)) {
+      throw new \Exception("Error al mover archivo a: {$destination}");
+    }
+
+    return [
+      'filename' => $new_filename,
+      'dir' => $hf_upload_dir,
+      'url' => $hf_upload_url . '/' . $new_filename,
+    ];
+  }
+  /**
+   * Convert Livewire TemporaryUploadedFile to HTML Forms expected format
+   * Uses WordPress functions to save the file and create attachment
+   *
+   * @param TemporaryUploadedFile $file
+   * @return array
+   * @throws \Exception
+   */
+  protected function convertLivewireFileToHtmlFormsFormat(TemporaryUploadedFile $file): array
+  {
+    try {
+      $originalName = $file->getClientOriginalName();
+      $mimeType = $file->getMimeType();
+      $fileSize = $file->getSize();
+
+      $uploadResult = $this->uploadFile($file);
+
+      // Formato esperado por HTML Forms
+      return [
+        'name' => $uploadResult['filename'],
+        'full_path' => $originalName,
+        'type' => $mimeType,
+        'error' => UPLOAD_ERR_OK,
+        'size' => $fileSize,
+        'dir' => $uploadResult['dir'],
+        'url' => $uploadResult['url'],
+      ];
+
+    } catch (\Exception $e) {
+      logger()->error('Error converting Livewire file to HTML Forms format: ' . $e->getMessage());
+      throw $e;
+    }
   }
 
   /**
