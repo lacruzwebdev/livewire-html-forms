@@ -38,6 +38,11 @@
                window.turnstile.reset();
             }
          })
+
+         // Listen for the turnstile-reset event to refresh the widget
+         @this.on('turnstile-reset', () => {
+            window.turnstile.reset();
+         })
       });
    </script>
 @endif

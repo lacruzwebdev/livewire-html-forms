@@ -64,6 +64,9 @@ trait LivewireHtmlForms
       if ($response['success']) {
         $this->successMessage = $response['message'];
         $this->resetFormFields();
+        if (config('livewire-html-forms.turnstile.enabled')) {
+          $this->resetTurnstile();
+        }
       } else {
         $this->errorMessage = $response['message'];
       }
@@ -78,6 +81,27 @@ trait LivewireHtmlForms
         logger()->error('HTML Forms integration error: ' . $e->getMessage());
       }
     }
+  }
+
+  /**
+   * Reset Turnstile widget after successful submission
+   */
+  protected function resetTurnstile(): void
+  {
+    // Reset the Turnstile response property
+    $this->turnstileResponse = '';
+
+    // Emit event to refresh the widget on frontend
+    $this->dispatch('turnstile-reset');
+  }
+
+  /**
+   * Manually reset Turnstile widget
+   * Public method that developers can call to reset the widget manually
+   */
+  public function resetTurnstileWidget(): void
+  {
+    $this->resetTurnstile();
   }
 
   /**

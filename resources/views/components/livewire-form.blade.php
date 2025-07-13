@@ -2,8 +2,8 @@
    {!! $this->getHtmlFormsHiddenInputs('contacto') !!}
    {{ $slot }}
 
-   <div>
-      <x-livewire-html-forms::turnstile wire:model="turnstileResponse" :id="$this->getId()" />
+   <div wire:ignore>
+      <x-livewire-html-forms::turnstile wire:model="turnstileResponse" :id="'_' . $this->getId()" />
    </div>
 
    {{ $submit ?? '' }}
