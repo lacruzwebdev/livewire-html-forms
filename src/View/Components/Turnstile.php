@@ -8,7 +8,7 @@ use InvalidArgumentException;
 class Turnstile extends Component
 {
   public string $id;
-  public string $siteKey;
+  public string $key;
   public string $theme;
   public string $size;
   public ?string $model;
@@ -22,7 +22,7 @@ class Turnstile extends Component
     $this->id = $id ?? config('livewire-html-forms.components.turnstile.default_id');
     $this->theme = $theme ?? config('livewire-html-forms.components.turnstile.default_theme');
     $this->size = $size ?? config('livewire-html-forms.components.turnstile.default_size');
-    $this->siteKey = config('livewire-html-forms.turnstile.site_key');
+    $this->key = config('livewire-html-forms.turnstile.key');
 
     if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $this->id)) {
       throw new InvalidArgumentException(

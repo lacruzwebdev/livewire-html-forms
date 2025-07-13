@@ -44,17 +44,7 @@ class LivewireHtmlFormsServiceProvider extends ServiceProvider
     // Publish configuration
     $this->publishes([
       __DIR__ . '/../../config/livewire-html-forms.php' => config_path('livewire-html-forms.php'),
-    ], 'livewire-html-forms-config');
-
-    // Publish views
-    $this->publishes([
-      __DIR__ . '/../../resources/views' => resource_path('views/vendor/livewire-html-forms'),
-    ], 'livewire-html-forms-views');
-
-    // Publish translations
-    $this->publishes([
-      __DIR__ . '/../../resources/lang' => resource_path('lang/vendor/livewire-html-forms'),
-    ], 'livewire-html-forms-lang');
+    ], 'livewire-html-forms');
 
     // Load views
     $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'livewire-html-forms');

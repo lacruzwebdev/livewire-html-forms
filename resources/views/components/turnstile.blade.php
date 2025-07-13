@@ -11,7 +11,7 @@
 
    $model = $attributes->has('wire:model') ? $attributes->get('wire:model') : null;
 @endphp
-<div class="cf-turnstile" data-sitekey="{{ config('app.turnstile.key') }}"
+<div class="cf-turnstile" data-sitekey="{{ config('livewire-html-forms.turnstile.key') }}"
    @if ($model) wire:ignore
         data-callback="{{ $id }}Callback"
         data-expired-callback="{{ $id }}ExpiredCallback"
